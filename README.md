@@ -8,7 +8,6 @@ A comprehensive and maintainable Selenium WebDriver test framework with built-in
 - 📝 **Comprehensive logging** with Winston
 - 📸 **Automatic screenshots** on test failures
 - 🎯 **Headless and headed modes**
-- 🔄 **CI/CD ready** with GitHub Actions
 - 🛡️ **Security-focused** configuration
 - 📊 **Test reporting** with JUnit XML output
 - 🚀 **Quick setup** - clone and run in 2 minutes
