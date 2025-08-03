@@ -85,6 +85,10 @@ class BaseTest {
       try {
         logger.step(`Navigate to: ${url} (attempt ${attempt})`);
         await this.driver.get(url);
+        
+        // Handle any popup dialogs that might appear after navigation
+        await this.handlePopups();
+        
         return;
       } catch (error) {
         lastError = error;
@@ -96,6 +100,60 @@ class BaseTest {
     }
     
     throw lastError || new Error(`Failed to navigate to ${url} after ${maxRetries} attempts`);
+  }
+
+  /**
+   * Handle common browser popups (password manager, notifications, etc.)
+   */
+  async handlePopups() {
+    if (!this.driver) {
+      return;
+    }
+
+    try {
+      // Check if the window is still available first
+      const windowHandles = await this.driver.getAllWindowHandles();
+      if (windowHandles.length === 0) {
+        logger.warn('No browser windows available for popup handling');
+        return;
+      }
+      
+      // Give a short time for any popups to appear
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Check for Chrome password manager "Change your password" dialog
+      const { By } = require('selenium-webdriver');
+      
+      const changePasswordElements = await this.driver.findElements(
+        By.xpath("//*[contains(text(), 'Change your password') or contains(text(), 'Update your password')]")
+      );
+      
+      if (changePasswordElements.length > 0) {
+        logger.step('Detected password change popup, attempting to dismiss');
+        
+        // Look for OK, Cancel, or dismiss buttons
+        const dismissButtons = await this.driver.findElements(
+          By.xpath("//button[text()='OK' or text()='Ok' or text()='Cancel' or @aria-label='OK' or @aria-label='Close']")
+        );
+        
+        if (dismissButtons.length > 0) {
+          // Only click if the button is displayed and enabled
+          const button = dismissButtons[0];
+          const isDisplayed = await button.isDisplayed();
+          const isEnabled = await button.isEnabled();
+          
+          if (isDisplayed && isEnabled) {
+            await button.click();
+            logger.step('Popup dismissed successfully');
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        }
+      }
+      
+    } catch (error) {
+      // Popup handling is best effort - don't fail the test if it doesn't work
+      logger.warn(`Popup handling encountered error: ${error.message}`);
+    }
   }
 
   /**

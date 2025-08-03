@@ -61,15 +61,16 @@ class WebDriverManager {
   _configureChromeOptions(builder) {
     const chromeOptions = new chrome.Options();
     
-    // Basic options
+    // Let selenium-webdriver handle ChromeDriver automatically
+    // No explicit service path needed
+    
+    // Basic options - focused on popup prevention and stability
     const basicArgs = [
       '--window-size=1920,1080',
-      '--disable-extensions',
-      '--disable-plugins',
-      '--disable-web-security',
-      '--allow-running-insecure-content',
-      '--disable-features=VizDisplayCompositor',
-      '--remote-debugging-port=9222'
+      '--disable-infobars',
+      '--disable-notifications',
+      '--disable-save-password-bubble',
+      '--password-store=basic'
     ];
 
     // Headless mode
@@ -83,19 +84,9 @@ class WebDriverManager {
         '--no-sandbox',
         '--disable-dev-shm-usage',
         '--disable-gpu',
-        '--disable-background-networking',
-        '--disable-client-side-phishing-detection',
-        '--disable-default-apps',
-        '--disable-hang-monitor',
-        '--disable-popup-blocking',
-        '--disable-prompt-on-repost',
-        '--disable-sync',
-        '--metrics-recording-only',
+        '--disable-extensions',
         '--no-first-run',
-        '--safebrowsing-disable-auto-update',
-        '--enable-automation',
-        '--password-store=basic',
-        '--use-mock-keychain'
+        '--enable-automation'
       ];
       basicArgs.push(...ciArgs);
     }

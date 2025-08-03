@@ -6,11 +6,20 @@ yarn-error.log*
 
 # Test artifacts and outputs
 screenshots/*.png
+screenshots/*.txt
 !screenshots/.gitkeep
 logs/*.log
 !logs/.gitkeep
 test-results/*.xml
 !test-results/.gitkeep
+
+# Debug and temporary files
+debug-*.js
+test-*.js
+simple-test.js
+minimal-test.js
+*_DEBUG_SUMMARY.md
+FIX_SUMMARY.md
 
 # Environment variables
 .env
