@@ -4,13 +4,17 @@
   "description": "Minimal Selenium UI test setup with logging and screenshots - A quick-start boilerplate for web automation testing",
   "main": "index.js",
   "scripts": {
-    "test": "jest --detectOpenHandles",
-    "test:headless": "HEADLESS=true jest --detectOpenHandles",
-    "test:chrome": "BROWSER=chrome jest --detectOpenHandles",
-    "test:firefox": "BROWSER=firefox jest --detectOpenHandles",
+    "test": "jest --detectOpenHandles --forceExit",
+    "test:headless": "HEADLESS=true jest --detectOpenHandles --forceExit",
+    "test:chrome": "BROWSER=chrome jest --detectOpenHandles --forceExit",
+    "test:firefox": "BROWSER=firefox jest --detectOpenHandles --forceExit",
+    "test:verbose": "jest --detectOpenHandles --forceExit --verbose",
     "demo": "node demo/demo.js",
     "setup": "node utils/setup.js",
-    "clean": "rm -rf screenshots/*.png logs/*.log || true"
+    "clean": "rm -rf screenshots/*.png logs/*.log test-results/*.xml || true",
+    "clean:all": "npm run clean && rm -rf node_modules package-lock.json",
+    "update": "npm outdated && npm update",
+    "audit": "npm audit --audit-level moderate"
   },
   "keywords": [
     "selenium",
@@ -25,13 +29,13 @@
   "author": "QA Engineer",
   "license": "MIT",
   "dependencies": {
-    "jest": "^29.7.0",
-    "selenium-webdriver": "^4.15.0",
-    "winston": "^3.11.0"
+    "jest": "^30.0.5",
+    "selenium-webdriver": "^4.27.0",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.8",
-    "@wdio/selenium-standalone-service": "^8.14.0",
+    "@jest/test-sequencer": "^30.0.5",
+    "@types/jest": "^30.0.0",
     "jest-junit": "^16.0.0"
   },
   "engines": {
@@ -39,6 +43,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/selenium-ui-test-boilerplate.git"
+    "url": "https://github.com/kiefertaylorland/selenium-ui-boilerplate.git"
   }
 }

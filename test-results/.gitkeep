@@ -1,0 +1,2 @@
+# This file ensures the test-results directory is tracked by Git
+# Test result files (*.xml) are ignored but the directory structure is preserved

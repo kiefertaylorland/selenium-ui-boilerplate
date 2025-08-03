@@ -1,43 +1,37 @@
 const { By, until } = require('selenium-webdriver');
-const WebDriverManager = require('../utils/setup');
+const BaseTest = require('../utils/BaseTest');
 const logger = require('../utils/logger');
 
 describe('Login Page Tests', () => {
-  let driverManager;
-  let driver;
+  let baseTest;
 
   beforeAll(async () => {
-    driverManager = new WebDriverManager();
-    driver = await driverManager.createDriver();
+    baseTest = new BaseTest();
+    await baseTest.setupSuite();
   });
 
   afterAll(async () => {
-    await driverManager.quit();
+    if (baseTest) {
+      await baseTest.teardownSuite();
+    }
   });
 
   beforeEach(async () => {
-    logger.testStart(expect.getState().currentTestName);
+    const testName = expect.getState().currentTestName;
+    await baseTest.setupTest(testName);
   });
 
   afterEach(async () => {
-    const testResult = expect.getState().numPassingAsserts > 0 ? 'passed' : 'failed';
-    
-    // Take screenshot on test failure
-    if (testResult === 'failed') {
-      try {
-        const testName = expect.getState().currentTestName.replace(/\s+/g, '_');
-        await driverManager.takeScreenshot(`failed_${testName}.png`);
-      } catch (screenshotError) {
-        logger.error(`Failed to capture failure screenshot: ${screenshotError.message}`);
-      }
-    }
-    
-    logger.testEnd(expect.getState().currentTestName, testResult);
+    const testName = expect.getState().currentTestName;
+    const testPassed = expect.getState().numPassingAsserts > 0;
+    await baseTest.teardownTest(testName, testPassed);
   });
 
   test('should load login page successfully', async () => {
-    logger.step('Navigate to demo login page');
-    await driver.get('https://the-internet.herokuapp.com/login');
+    const driver = baseTest.driver;
+    
+    await baseTest.navigateTo('https://the-internet.herokuapp.com/login');
+    await baseTest.waitForPageReady();
     
     logger.step('Verify page title contains "Login"');
     const title = await driver.getTitle();
@@ -53,12 +47,13 @@ describe('Login Page Tests', () => {
     expect(loginButton).toBeTruthy();
     
     // Take success screenshot
-    await driverManager.takeScreenshot('login_page_loaded.png');
+    await baseTest.driverManager.takeScreenshot('login_page_loaded.png');
   });
 
   test('should perform successful login', async () => {
-    logger.step('Navigate to login page');
-    await driver.get('https://the-internet.herokuapp.com/login');
+    const driver = baseTest.driver;
+    
+    await baseTest.navigateTo('https://the-internet.herokuapp.com/login');
     
     logger.step('Enter valid credentials');
     await driver.findElement(By.id('username')).sendKeys('tomsmith');
@@ -76,12 +71,13 @@ describe('Login Page Tests', () => {
     expect(messageText).toContain('You logged into a secure area!');
     
     // Take success screenshot
-    await driverManager.takeScreenshot('successful_login.png');
+    await baseTest.driverManager.takeScreenshot('successful_login.png');
   });
 
   test('should show error for invalid credentials', async () => {
-    logger.step('Navigate to login page');
-    await driver.get('https://the-internet.herokuapp.com/login');
+    const driver = baseTest.driver;
+    
+    await baseTest.navigateTo('https://the-internet.herokuapp.com/login');
     
     logger.step('Enter invalid credentials');
     await driver.findElement(By.id('username')).sendKeys('invaliduser');
@@ -99,6 +95,6 @@ describe('Login Page Tests', () => {
     expect(messageText).toContain('Your username is invalid!');
     
     // Take screenshot of error state
-    await driverManager.takeScreenshot('login_error.png');
+    await baseTest.driverManager.takeScreenshot('login_error.png');
   });
 });

@@ -1,18 +1,18 @@
 const { By, until } = require('selenium-webdriver');
-const WebDriverManager = require('../utils/setup');
+const BaseTest = require('../utils/BaseTest');
 const logger = require('../utils/logger');
 
 describe('Dashboard Navigation Tests', () => {
-  let driverManager;
-  let driver;
+  let baseTest;
 
   beforeAll(async () => {
-    driverManager = new WebDriverManager();
-    driver = await driverManager.createDriver();
+    baseTest = new BaseTest();
+    await baseTest.setupSuite();
     
     // Login before running dashboard tests
     logger.step('Performing login setup for dashboard tests');
-    await driver.get('https://the-internet.herokuapp.com/login');
+    const driver = baseTest.driver;
+    await baseTest.navigateTo('https://the-internet.herokuapp.com/login');
     await driver.findElement(By.id('username')).sendKeys('tomsmith');
     await driver.findElement(By.id('password')).sendKeys('SuperSecretPassword!');
     await driver.findElement(By.css('button[type="submit"]')).click();
@@ -20,29 +20,25 @@ describe('Dashboard Navigation Tests', () => {
   });
 
   afterAll(async () => {
-    await driverManager.quit();
+    if (baseTest) {
+      await baseTest.teardownSuite();
+    }
   });
 
   beforeEach(async () => {
-    logger.testStart(expect.getState().currentTestName);
+    const testName = expect.getState().currentTestName;
+    await baseTest.setupTest(testName);
   });
 
   afterEach(async () => {
-    const testResult = expect.getState().numPassingAsserts > 0 ? 'passed' : 'failed';
-    
-    if (testResult === 'failed') {
-      try {
-        const testName = expect.getState().currentTestName.replace(/\s+/g, '_');
-        await driverManager.takeScreenshot(`failed_${testName}.png`);
-      } catch (screenshotError) {
-        logger.error(`Failed to capture failure screenshot: ${screenshotError.message}`);
-      }
-    }
-    
-    logger.testEnd(expect.getState().currentTestName, testResult);
+    const testName = expect.getState().currentTestName;
+    const testPassed = expect.getState().numPassingAsserts > 0;
+    await baseTest.teardownTest(testName, testPassed);
   });
 
   test('should display secure area after login', async () => {
+    const driver = baseTest.driver;
+    
     logger.step('Verify we are on the secure area page');
     const currentUrl = await driver.getCurrentUrl();
     expect(currentUrl).toContain('/secure');
@@ -53,10 +49,12 @@ describe('Dashboard Navigation Tests', () => {
     expect(headerText).toBe('Secure Area');
     
     // Take screenshot of dashboard
-    await driverManager.takeScreenshot('dashboard_loaded.png');
+    await baseTest.driverManager.takeScreenshot('dashboard_loaded.png');
   });
 
   test('should have logout functionality', async () => {
+    const driver = baseTest.driver;
+    
     logger.step('Locate logout button');
     const logoutButton = await driver.findElement(By.css('a[href="/logout"]'));
     expect(logoutButton).toBeTruthy();
@@ -79,12 +77,14 @@ describe('Dashboard Navigation Tests', () => {
     expect(messageText).toContain('You logged out of the secure area!');
     
     // Take screenshot of logout
-    await driverManager.takeScreenshot('logout_success.png');
+    await baseTest.driverManager.takeScreenshot('logout_success.png');
   });
 
   test('should prevent unauthorized access to secure area', async () => {
+    const driver = baseTest.driver;
+    
     logger.step('Navigate directly to secure area without login');
-    await driver.get('https://the-internet.herokuapp.com/secure');
+    await baseTest.navigateTo('https://the-internet.herokuapp.com/secure');
     
     logger.step('Verify redirect to login page');
     await driver.wait(until.urlContains('/login'), 10000);
@@ -97,6 +97,6 @@ describe('Dashboard Navigation Tests', () => {
     expect(messageText).toContain('You must login to view the secure area!');
     
     // Take screenshot of unauthorized access
-    await driverManager.takeScreenshot('unauthorized_access.png');
+    await baseTest.driverManager.takeScreenshot('unauthorized_access.png');
   });
 });

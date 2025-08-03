@@ -1,6 +1,6 @@
 # 🔍 Selenium UI Test Boilerplate
 
-A minimal yet comprehensive Selenium WebDriver test setup with built-in logging and screenshot capabilities. Perfect for getting started with UI automation testing or as a foundation for larger test suites.
+A comprehensive and maintainable Selenium WebDriver test framework with built-in logging, screenshot capabilities, and CI/CD integration. Perfect for getting started with UI automation testing or as a foundation for larger test suites.
 
 ## 🔧 Features
 
@@ -10,14 +10,18 @@ A minimal yet comprehensive Selenium WebDriver test setup with built-in logging 
 - 🎯 **Headless and headed modes**
 - 🔄 **CI/CD ready** with GitHub Actions
 - 🛡️ **Security-focused** configuration
-- 📊 **Test reporting** with detailed results
+- 📊 **Test reporting** with JUnit XML output
 - 🚀 **Quick setup** - clone and run in 2 minutes
+- 🔧 **Enhanced error handling** and retry logic
+- 🏗️ **Improved CI stability** with better browser setup
+- 🧪 **BaseTest class** for consistent test structure
+- 📋 **Page ready detection** and navigation retry logic
 
 ## 🎯 DEMO MODE - Quick Test Without Browser Dependencies
 
 This demo shows the project structure and logging capabilities without requiring browser setup.
 
-## Run Demo
+### Run Demo
 
 ```bash
 npm run demo

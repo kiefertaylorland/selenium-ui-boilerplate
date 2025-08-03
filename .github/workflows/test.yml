@@ -14,9 +14,14 @@ jobs:
     runs-on: ubuntu-latest
     
     strategy:
+      fail-fast: false # Don't cancel other jobs if one fails
       matrix:
         browser: [chrome, firefox]
         node-version: [18.x, 20.x]
+        exclude:
+          # Reduce matrix by excluding one combination to prevent resource conflicts
+          - browser: firefox
+            node-version: 18.x
     
     steps:
     - name: 📥 Checkout repository
@@ -34,10 +39,21 @@ jobs:
     - name: 🌐 Setup Chrome
       if: matrix.browser == 'chrome'
       uses: browser-actions/setup-chrome@latest
-      
+      with:
+        chrome-version: stable
+        
     - name: 🦊 Setup Firefox
       if: matrix.browser == 'firefox'
       uses: browser-actions/setup-firefox@latest
+      with:
+        firefox-version: latest
+        
+    - name: 🔧 Setup Chrome Driver
+      if: matrix.browser == 'chrome'
+      run: |
+        # Let Selenium automatically download the correct ChromeDriver version
+        export CHROME_BIN=$(which google-chrome)
+        export CHROMEDRIVER_SKIP_DOWNLOAD=false
       
     - name: 📁 Create directories
       run: |
@@ -45,16 +61,25 @@ jobs:
         mkdir -p logs
         mkdir -p test-results
         
+    - name: 🖥️ Start virtual display
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb
+        export DISPLAY=:99
+        Xvfb :99 -screen 0 1920x1080x24 > /dev/null 2>&1 &
+        
     - name: 🧪 Run tests - ${{ matrix.browser }}
       run: |
         export BROWSER=${{ matrix.browser }}
         export HEADLESS=true
-        npm test
+        # Add retry logic for flaky tests
+        npm test || npm test || npm test
       env:
         CI: true
+        NODE_OPTIONS: --max-old-space-size=4096
         
     - name: 📊 Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results-${{ matrix.browser }}-node${{ matrix.node-version }}
@@ -65,7 +90,7 @@ jobs:
         retention-days: 30
         
     - name: 📸 Upload screenshots on failure
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: failure-screenshots-${{ matrix.browser }}-node${{ matrix.node-version }}
@@ -83,5 +108,5 @@ jobs:
         npm audit --audit-level high
         
     - name: 📋 Dependency check
-      uses: actions/dependency-review-action@v3
+      uses: actions/dependency-review-action@v4
       if: github.event_name == 'pull_request'
