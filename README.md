@@ -1,8 +1,5 @@
 # 🔍 Selenium UI Test Boilerplate
 
-[![Tests](https://github.com/your-username/selenium-ui-test-boilerplate/actions/workflows/test.yml/badge.svg)](https://github.com/your-username/selenium-ui-test-boilerplate/actions/workflows/test.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
 A minimal yet comprehensive Selenium WebDriver test setup with built-in logging and screenshot capabilities. Perfect for getting started with UI automation testing or as a foundation for larger test suites.
 
 ## 🔧 Features
