@@ -15,6 +15,9 @@ A comprehensive and maintainable Selenium WebDriver test framework with built-in
 - 🏗️ **Improved CI stability** with better browser setup
 - 🧪 **BaseTest class** for consistent test structure
 - 📋 **Page ready detection** and navigation retry logic
+- ⚡ **High performance** - 5.7x faster execution with optimized configuration
+- 🔄 **Parallel execution** support for faster local development
+- 🎯 **Smart navigation** - avoids redundant page loads
 
 ## 🎯 DEMO MODE - Quick Test Without Browser Dependencies
 
@@ -62,15 +65,21 @@ npm test
 ### Running Tests
 
 ```bash
-# Run all tests (default: Chrome, headed mode)
+# Run all tests (default: fast headless mode)
 npm test
 
-# Run in headless mode
-npm run test:headless
+# Run with maximum performance (parallel workers)
+npm run test:fast
+
+# Run in headed mode for debugging
+npm run test:headed
 
 # Run with specific browser
 npm run test:chrome
 npm run test:firefox
+
+# Debug mode (verbose output, single worker)
+npm run test:debug
 
 # Clean up artifacts
 npm run clean

@@ -61,37 +61,62 @@ class WebDriverManager {
   _configureChromeOptions(builder) {
     const chromeOptions = new chrome.Options();
     
-    // Let selenium-webdriver handle ChromeDriver automatically
-    // No explicit service path needed
-    
-    // Basic options - focused on popup prevention and stability
-    const basicArgs = [
-      '--window-size=1920,1080',
-      '--disable-infobars',
-      '--disable-notifications',
-      '--disable-save-password-bubble',
-      '--password-store=basic'
+    // Performance-focused options
+    const performanceArgs = [
+      '--window-size=1280,720', // Smaller window for faster rendering
+      '--disable-web-security',
+      '--disable-features=TranslateUI',
+      '--disable-ipc-flooding-protection',
+      '--disable-renderer-backgrounding',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-client-side-phishing-detection',
+      '--disable-sync',
+      '--disable-default-apps',
+      '--no-first-run',
+      '--no-default-browser-check',
+      '--disable-hang-monitor',
+      '--disable-prompt-on-repost',
+      '--disable-background-timer-throttling',
+      '--disable-background-networking',
+      '--disable-background-tab-rendering',
+      '--disable-features=VizDisplayCompositor'
     ];
 
-    // Headless mode
-    if (this.headless) {
+    // Headless mode - always use for performance
+    if (this.headless || !process.env.HEADED) {
       chromeOptions.addArguments('--headless=new');
     }
 
-    // CI-specific optimizations
-    if (process.env.CI) {
-      const ciArgs = [
-        '--no-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--disable-extensions',
-        '--no-first-run',
-        '--enable-automation'
-      ];
-      basicArgs.push(...ciArgs);
-    }
+    // CI and general optimizations
+    const optimizationArgs = [
+      '--no-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--disable-extensions',
+      '--disable-plugins',
+      '--disable-images', // Skip loading images for faster page loads
+      '--disable-javascript-harmony-shipping',
+      '--disable-background-tasks',
+      '--disable-background-timer-throttling',
+      '--disable-renderer-backgrounding',
+      '--disable-backgrounding-occluded-windows',
+      '--memory-pressure-off',
+      '--max_old_space_size=4096'
+    ];
 
-    chromeOptions.addArguments(...basicArgs);
+    chromeOptions.addArguments(...performanceArgs, ...optimizationArgs);
+    
+    // Additional performance preferences
+    chromeOptions.setUserPreferences({
+      'profile.default_content_setting_values': {
+        'notifications': 2,
+        'geolocation': 2,
+        'media_stream': 2,
+      },
+      'profile.default_content_settings.popups': 0,
+      'profile.managed_default_content_settings.images': 2
+    });
+    
     builder.forBrowser('chrome').setChromeOptions(chromeOptions);
   }
 
@@ -152,9 +177,9 @@ class WebDriverManager {
    */
   async _configureTimeouts() {
     await this.driver.manage().setTimeouts({ 
-      implicit: 10000,    // 10 seconds for element location
-      pageLoad: 30000,    // 30 seconds for page load
-      script: 30000       // 30 seconds for script execution
+      implicit: 5000,     // Reduced from 10s to 5s
+      pageLoad: 15000,    // Reduced from 30s to 15s
+      script: 10000       // Reduced from 30s to 10s
     });
   }
 

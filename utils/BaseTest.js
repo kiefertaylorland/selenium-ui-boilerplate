@@ -3,12 +3,14 @@
  * Provides common setup, teardown, and utility methods
  */
 const WebDriverManager = require('./setup');
+const ElementHelper = require('./ElementHelper');
 const logger = require('./logger');
 
 class BaseTest {
   constructor() {
     this.driverManager = null;
     this.driver = null;
+    this.elementHelper = null;
     this.testStartTime = null;
   }
 
@@ -19,6 +21,7 @@ class BaseTest {
     try {
       this.driverManager = new WebDriverManager();
       this.driver = await this.driverManager.createDriver();
+      this.elementHelper = new ElementHelper(this.driver);
       logger.info('Test suite setup completed successfully');
     } catch (error) {
       logger.error('Failed to initialize WebDriver in suite setup:', error);
@@ -40,6 +43,7 @@ class BaseTest {
     } finally {
       this.driverManager = null;
       this.driver = null;
+      this.elementHelper = null;
     }
   }
 
@@ -73,11 +77,22 @@ class BaseTest {
   }
 
   /**
-   * Navigate to a URL with retry logic
+   * Navigate to a URL with retry logic and performance optimizations
    */
-  async navigateTo(url, maxRetries = 3) {
+  async navigateTo(url, maxRetries = 2) { // Reduced retries from 3 to 2
     if (!this.driver) {
       throw new Error('WebDriver not initialized');
+    }
+
+    // Check if we're already on the target URL to avoid unnecessary navigation
+    try {
+      const currentUrl = await this.driver.getCurrentUrl();
+      if (currentUrl === url || (url.includes('/login') && currentUrl.includes('/login'))) {
+        logger.step(`Already on target page: ${url}`);
+        return;
+      }
+    } catch (error) {
+      // Ignore errors here, proceed with navigation
     }
 
     let lastError;
@@ -85,16 +100,12 @@ class BaseTest {
       try {
         logger.step(`Navigate to: ${url} (attempt ${attempt})`);
         await this.driver.get(url);
-        
-        // Handle any popup dialogs that might appear after navigation
-        await this.handlePopups();
-        
-        return;
+        return; // Success, no need for popup handling delay
       } catch (error) {
         lastError = error;
         logger.warn(`Navigation attempt ${attempt} failed: ${error.message}`);
         if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 500)); // Reduced delay
         }
       }
     }
@@ -104,6 +115,7 @@ class BaseTest {
 
   /**
    * Handle common browser popups (password manager, notifications, etc.)
+   * Optimized for performance - reduced delays and simplified logic
    */
   async handlePopups() {
     if (!this.driver) {
@@ -118,35 +130,30 @@ class BaseTest {
         return;
       }
       
-      // Give a short time for any popups to appear
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Minimal delay for popup detection
+      await new Promise(resolve => setTimeout(resolve, 100)); // Reduced from 500ms
       
-      // Check for Chrome password manager "Change your password" dialog
+      // Quick check for common popup patterns
       const { By } = require('selenium-webdriver');
       
-      const changePasswordElements = await this.driver.findElements(
-        By.xpath("//*[contains(text(), 'Change your password') or contains(text(), 'Update your password')]")
+      // Look for any dismiss buttons without complex text matching
+      const dismissButtons = await this.driver.findElements(
+        By.css('button[aria-label*="close"], button[aria-label*="dismiss"], button[data-dismiss], .close, .dismiss')
       );
       
-      if (changePasswordElements.length > 0) {
-        logger.step('Detected password change popup, attempting to dismiss');
-        
-        // Look for OK, Cancel, or dismiss buttons
-        const dismissButtons = await this.driver.findElements(
-          By.xpath("//button[text()='OK' or text()='Ok' or text()='Cancel' or @aria-label='OK' or @aria-label='Close']")
-        );
-        
-        if (dismissButtons.length > 0) {
-          // Only click if the button is displayed and enabled
+      if (dismissButtons.length > 0) {
+        try {
           const button = dismissButtons[0];
           const isDisplayed = await button.isDisplayed();
           const isEnabled = await button.isEnabled();
           
           if (isDisplayed && isEnabled) {
             await button.click();
-            logger.step('Popup dismissed successfully');
-            await new Promise(resolve => setTimeout(resolve, 500));
+            logger.step('Popup dismissed');
+            await new Promise(resolve => setTimeout(resolve, 100)); // Reduced delay
           }
+        } catch (clickError) {
+          // Ignore click errors
         }
       }
       
@@ -157,9 +164,9 @@ class BaseTest {
   }
 
   /**
-   * Wait for page to be ready
+   * Wait for page to be ready with faster timeout
    */
-  async waitForPageReady(timeout = 10000) {
+  async waitForPageReady(timeout = 5000) { // Reduced from 10s to 5s
     if (!this.driver) {
       throw new Error('WebDriver not initialized');
     }

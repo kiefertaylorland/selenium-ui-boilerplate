@@ -9,14 +9,18 @@ describe('Dashboard Navigation Tests', () => {
     baseTest = new BaseTest();
     await baseTest.setupSuite();
     
-    // Login before running dashboard tests
+    // Login once before running dashboard tests
     logger.step('Performing login setup for dashboard tests');
     const driver = baseTest.driver;
     await baseTest.navigateTo('https://the-internet.herokuapp.com/login');
-    await driver.findElement(By.id('username')).sendKeys('tomsmith');
-    await driver.findElement(By.id('password')).sendKeys('SuperSecretPassword!');
+    
+    await Promise.all([
+      driver.findElement(By.id('username')).sendKeys('tomsmith'),
+      driver.findElement(By.id('password')).sendKeys('SuperSecretPassword!')
+    ]);
+    
     await driver.findElement(By.css('button[type="submit"]')).click();
-    await driver.wait(until.urlContains('/secure'), 10000);
+    await driver.wait(until.urlContains('/secure'), 8000);
   });
 
   afterAll(async () => {
@@ -55,24 +59,22 @@ describe('Dashboard Navigation Tests', () => {
   test('should have logout functionality', async () => {
     const driver = baseTest.driver;
     
-    logger.step('Locate logout button');
+    logger.step('Navigate to secure area first');
+    await baseTest.navigateTo('https://the-internet.herokuapp.com/secure');
+    
+    logger.step('Locate and verify logout button');
     const logoutButton = await driver.findElement(By.css('a[href="/logout"]'));
     expect(logoutButton).toBeTruthy();
     
-    logger.step('Verify logout button text');
     const buttonText = await logoutButton.getText();
     expect(buttonText).toContain('Logout');
     
-    logger.step('Navigate to logout URL');
-    // Use direct navigation instead of clicking due to potential JavaScript issues
-    await driver.get('https://the-internet.herokuapp.com/logout');
+    logger.step('Perform logout');
+    await logoutButton.click();
     
-    logger.step('Verify redirect to login page');
-    await driver.sleep(1000); // Give time for redirect
-    const currentUrl = await driver.getCurrentUrl();
-    expect(currentUrl).toContain('/login');
+    logger.step('Verify logout success');
+    await driver.wait(until.urlContains('/login'), 5000);
     
-    logger.step('Verify logout success message');
     const successMessage = await driver.findElement(By.css('.flash.success'));
     const messageText = await successMessage.getText();
     expect(messageText).toContain('You logged out of the secure area!');
