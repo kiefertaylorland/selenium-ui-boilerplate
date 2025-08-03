@@ -1,0 +1,44 @@
+{
+  "name": "selenium-ui-test-boilerplate",
+  "version": "1.0.0",
+  "description": "Minimal Selenium UI test setup with logging and screenshots - A quick-start boilerplate for web automation testing",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --detectOpenHandles",
+    "test:headless": "HEADLESS=true jest --detectOpenHandles",
+    "test:chrome": "BROWSER=chrome jest --detectOpenHandles",
+    "test:firefox": "BROWSER=firefox jest --detectOpenHandles",
+    "demo": "node demo/demo.js",
+    "setup": "node utils/setup.js",
+    "clean": "rm -rf screenshots/*.png logs/*.log || true"
+  },
+  "keywords": [
+    "selenium",
+    "webdriver",
+    "ui-testing",
+    "automation",
+    "testing",
+    "qa",
+    "screenshots",
+    "logging"
+  ],
+  "author": "QA Engineer",
+  "license": "MIT",
+  "dependencies": {
+    "jest": "^29.7.0",
+    "selenium-webdriver": "^4.15.0",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.8",
+    "@wdio/selenium-standalone-service": "^8.14.0",
+    "jest-junit": "^16.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/selenium-ui-test-boilerplate.git"
+  }
+}

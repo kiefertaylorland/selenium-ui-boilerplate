@@ -1,0 +1,87 @@
+name: 🧪 Selenium UI Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        browser: [chrome, firefox]
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: 🔧 Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: 📦 Install dependencies
+      run: npm ci
+      
+    - name: 🌐 Setup Chrome
+      if: matrix.browser == 'chrome'
+      uses: browser-actions/setup-chrome@latest
+      
+    - name: 🦊 Setup Firefox
+      if: matrix.browser == 'firefox'
+      uses: browser-actions/setup-firefox@latest
+      
+    - name: 📁 Create directories
+      run: |
+        mkdir -p screenshots
+        mkdir -p logs
+        mkdir -p test-results
+        
+    - name: 🧪 Run tests - ${{ matrix.browser }}
+      run: |
+        export BROWSER=${{ matrix.browser }}
+        export HEADLESS=true
+        npm test
+      env:
+        CI: true
+        
+    - name: 📊 Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results-${{ matrix.browser }}-node${{ matrix.node-version }}
+        path: |
+          test-results/
+          screenshots/
+          logs/
+        retention-days: 30
+        
+    - name: 📸 Upload screenshots on failure
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: failure-screenshots-${{ matrix.browser }}-node${{ matrix.node-version }}
+        path: screenshots/
+        retention-days: 7
+        
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: 🛡️ Run security audit
+      run: |
+        npm audit --audit-level high
+        
+    - name: 📋 Dependency check
+      uses: actions/dependency-review-action@v3
+      if: github.event_name == 'pull_request'
