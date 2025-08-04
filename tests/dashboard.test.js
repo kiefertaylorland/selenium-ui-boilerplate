@@ -89,8 +89,8 @@ describe('Dashboard Navigation Tests', () => {
     logger.step('Clear session by navigating to logout (ensure clean state)');
     await driver.get('https://the-internet.herokuapp.com/logout');
     
-    // Wait a moment for logout to complete
-    await driver.sleep(500);
+    // Wait for redirect to login page after logout
+    await driver.wait(until.urlContains('/login'), 5000);
     
     logger.step('Navigate directly to secure area without login');
     await driver.get('https://the-internet.herokuapp.com/secure');
