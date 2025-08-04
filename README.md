@@ -1,6 +1,8 @@
 # 🔍 Selenium UI Test Boilerplate
 
-A comprehensive and maintainable Selenium WebDriver test framework with built-in logging, screenshot capabilities, and CI/CD integration. Perfect for getting started with UI automation testing or as a foundation for larger test suites.
+A comprehensive and maintainable Selenium WebDriver test framework with built-in logging and screenshot capabilities.
+
+Perfect for getting started with UI automation testing or as a foundation for larger test suites.
 
 ## 🔧 Features
 
