@@ -4,6 +4,9 @@ A comprehensive and maintainable Selenium WebDriver test framework with built-in
 
 Perfect for getting started with UI automation testing or as a foundation for larger test suites.
 
+![Screenshot 2025-08-04 at 4 28 42 PM](https://github.com/user-attachments/assets/5d30e4cd-7ca8-4565-9d2f-dae76af8656d)
+![Screenshot 2025-08-04 at 4 32 40 PM](https://github.com/user-attachments/assets/c2157246-91e4-4629-a1ad-6cc8a58bdd61)
+
 ## 🔧 Features
 
 - ✅ **Cross-browser support** (Chrome, Firefox)
