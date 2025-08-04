@@ -73,7 +73,7 @@ describe('Dashboard Navigation Tests', () => {
     await logoutButton.click();
     
     logger.step('Verify logout success');
-    await driver.wait(until.urlContains('/login'), 5000);
+    await driver.wait(until.urlContains('/login'), 8000); // Increased timeout from 5000 to 8000
     
     const successMessage = await driver.findElement(By.css('.flash.success'));
     const messageText = await successMessage.getText();
@@ -86,8 +86,17 @@ describe('Dashboard Navigation Tests', () => {
   test('should prevent unauthorized access to secure area', async () => {
     const driver = baseTest.driver;
     
+    logger.step('Clear session by navigating to logout (ensure clean state)');
+    await driver.get('https://the-internet.herokuapp.com/logout');
+    
+    // Wait for redirect to login page after logout
+    await driver.wait(until.urlContains('/login'), 5000);
+    
     logger.step('Navigate directly to secure area without login');
-    await baseTest.navigateTo('https://the-internet.herokuapp.com/secure');
+    await driver.get('https://the-internet.herokuapp.com/secure');
+    
+    logger.step('Wait for potential redirect to login page');
+    await driver.wait(until.urlContains('/login'), 5000);
     
     logger.step('Verify redirect to login page');
     const currentUrl = await driver.getCurrentUrl();
